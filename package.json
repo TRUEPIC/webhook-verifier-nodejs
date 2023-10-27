@@ -1,0 +1,33 @@
+{
+  "name": "@truepic/webhook-verifier",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Verify webhooks from Truepic Vision or Lens in your Node.js app",
+  "homepage": "https://github.com/TRUEPIC/webhook-verifier-nodejs#readme",
+  "bugs": "https://github.com/TRUEPIC/webhook-verifier-nodejs/issues",
+  "license": "MIT",
+  "main": "src/index.js",
+  "repository": "TRUEPIC/webhook-verifier-nodejs",
+  "scripts": {
+    "lint": "run-p lint:*",
+    "lint:format": "prettier --check .",
+    "lint:format:fix": "prettier --write .",
+    "lint:quality": "eslint .",
+    "lint:quality:fix": "eslint --fix .",
+    "release": "release-it --only-version",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "eslint": "^8.52.0",
+    "eslint-config-prettier": "^9.0.0",
+    "npm-run-all": "^4.1.5",
+    "prettier": "3.0.3",
+    "release-it": "^16.2.1"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
