@@ -32,12 +32,12 @@ This `verifyWebhook` function is then called with the following arguments:
 
 ```js
 verifyWebhook({
-  url: "The full URL that received the request, and that's registered with Truepic",
-  secret: "The shared secret that's registered with Truepic",
-  header: 'The value of the `truepic-signature` header from the request',
-  body: 'The raw body (unparsed JSON) from the request',
+  url: 'The full URL that received the request and is registered with Truepic.',
+  secret: "The shared secret that's registered with Truepic.",
+  header: 'The value of the `truepic-signature` header from the request.',
+  body: 'The raw body (unparsed JSON) from the request.',
   leewayMinutes:
-    'The number of minutes allowed between the request being sent and received',
+    'The number of minutes allowed between the request being sent and received. Defaults to `5`.',
 })
 ```
 
@@ -167,6 +167,16 @@ change:
 
 ```bash
 npm test -- --watch
+```
+
+### Docs
+
+[JSDoc](https://jsdoc.app/) is used to document the code.
+
+To generate the docs as HTML to the (git-ignored) `docs` directory:
+
+```bash
+npm run docs
 ```
 
 ### Code Style & Linting

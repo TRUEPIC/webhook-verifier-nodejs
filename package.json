@@ -9,6 +9,7 @@
   "main": "src/index.js",
   "repository": "TRUEPIC/webhook-verifier-nodejs",
   "scripts": {
+    "docs": "jsdoc src --recurse --destination docs",
     "lint": "run-p lint:*",
     "lint:format": "prettier --check .",
     "lint:format:fix": "prettier --write .",
@@ -20,6 +21,7 @@
   "devDependencies": {
     "eslint": "^8.52.0",
     "eslint-config-prettier": "^9.0.0",
+    "jsdoc": "^4.0.2",
     "npm-run-all": "^4.1.5",
     "prettier": "3.0.3",
     "release-it": "^16.2.1"
