@@ -6,6 +6,15 @@
   <i>Verify webhooks from Truepic Vision or Lens in your Node.js app</i>
 </h3>
 
+<h3 align="center" width="100%">
+  <a href="https://www.npmjs.com/package/@truepic/webhook-verifier">
+    <img src="https://img.shields.io/npm/v/@truepic/webhook-verifier?color=196dff" alt="npm">
+  </a>
+  <a href="https://github.com/TRUEPIC/webhook-verifier-nodejs/actions">
+    <img src="https://github.com/TRUEPIC/webhook-verifier-nodejs/actions/workflows/ci.yml/badge.svg" alt="GitHub Actions">
+  </a>
+</h3>
+
 This module verifies
 
 - the integrity of the data being received,
