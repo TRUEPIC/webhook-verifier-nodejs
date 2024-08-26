@@ -7,7 +7,14 @@
   "bugs": "https://github.com/TRUEPIC/webhook-verifier-nodejs/issues",
   "license": "MIT",
   "main": "./src/main.js",
-  "repository": "TRUEPIC/webhook-verifier-nodejs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TRUEPIC/webhook-verifier-nodejs.git"
+  },
+  "files": [
+    "src",
+    "!src/**/*.test.js"
+  ],
   "scripts": {
     "docs": "jsdoc src --recurse --destination docs",
     "lint": "npm run lint:format && npm run lint:quality",
