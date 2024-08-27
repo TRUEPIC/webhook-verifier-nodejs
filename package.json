@@ -1,6 +1,6 @@
 {
   "name": "@truepic/webhook-verifier",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "type": "module",
   "description": "Verify webhooks from Truepic Vision or Lens in your Node.js app",
   "homepage": "https://github.com/TRUEPIC/webhook-verifier-nodejs#readme",
