@@ -19,4 +19,4 @@ class TruepicWebhookVerifierError extends Error {
   }
 }
 
-export default TruepicWebhookVerifierError
+module.exports = TruepicWebhookVerifierError

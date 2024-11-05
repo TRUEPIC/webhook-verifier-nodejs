@@ -1,5 +1,5 @@
-import { createHmac, timingSafeEqual } from 'node:crypto'
-import TruepicWebhookVerifierError from './error.js'
+const { createHmac, timingSafeEqual } = require('node:crypto')
+const TruepicWebhookVerifierError = require('./error')
 
 /**
  * Parse the `truepic-signature` header into timestamp and signature values.
@@ -164,5 +164,5 @@ function verifyTruepicWebhook({
 }
 
 /** @module @truepic/webhook-verifier */
-export default verifyTruepicWebhook
-export { TruepicWebhookVerifierError }
+module.exports = verifyTruepicWebhook
+module.exports.TruepicWebhookVerifierError = TruepicWebhookVerifierError

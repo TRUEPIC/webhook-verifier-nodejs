@@ -42,6 +42,12 @@ imported to begin:
 import verifyTruepicWebhook from '@truepic/webhook-verifier'
 ```
 
+CommonJS is also supported:
+
+```js
+const verifyTruepicWebhook = require('@truepic/webhook-verifier')
+```
+
 This `verifyTruepicWebhook` function (or whatever you imported it as) is then
 called with the following arguments:
 
