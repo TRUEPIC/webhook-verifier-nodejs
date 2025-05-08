@@ -20,7 +20,7 @@ module.exports = [
       'n/no-unsupported-features/node-builtins': [
         'error',
         {
-          ignores: ['test', 'test.describe', 'test.it'],
+          ignores: ['test.describe'],
         },
       ],
     },
