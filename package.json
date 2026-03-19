@@ -6,6 +6,7 @@
   "bugs": "https://github.com/TRUEPIC/webhook-verifier-nodejs/issues",
   "license": "MIT",
   "main": "./src/main.js",
+  "types": "./src/main.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/TRUEPIC/webhook-verifier-nodejs.git"
