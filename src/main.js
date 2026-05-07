@@ -101,8 +101,8 @@ function verifyTimestamp({ timestamp, leewayMinutes }) {
  * @returns {true} If verification succeeds.
  */
 function verifySignature({ url, secret, body, timestamp, signature }) {
-  // Rebuild the signature (SHA-256, base64-encoded HMAC digest) with a secret
-  // that only Truepic and the intended receiver are privy to.
+  // Rebuild the signature (SHA-256 HMAC digest) with a secret that only Truepic
+  // and the intended receiver are privy to.
   const comparisonSignature = createHmac('sha256', secret)
 
   // Concatenate the full URL that received the request, timestamp parsed from
@@ -112,11 +112,14 @@ function verifySignature({ url, secret, body, timestamp, signature }) {
   // ways, which can result in a different signature.
   comparisonSignature.update([url, timestamp, body].join(','))
 
-  // Compare with a constant-time algorithm to prevent a timing attack.
-  const isEqual = timingSafeEqual(
-    Buffer.from(comparisonSignature.digest('base64'), 'base64'),
-    Buffer.from(signature, 'base64'),
-  )
+  const comparisonBuffer = comparisonSignature.digest()
+  const signatureBuffer = Buffer.from(signature, 'base64')
+
+  // Compare with a constant-time algorithm to prevent a timing attack. It
+  // requires equal-length buffers, otherwise it throws an error.
+  const isEqual =
+    comparisonBuffer.length === signatureBuffer.length &&
+    timingSafeEqual(comparisonBuffer, signatureBuffer)
 
   if (!isEqual) {
     throw new TruepicWebhookVerifierError('Signature is not valid')
