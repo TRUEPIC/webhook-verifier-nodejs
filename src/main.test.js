@@ -199,6 +199,20 @@ describe('verifyTruepicWebhook', () => {
       )
     })
 
+    it('if the `header` signature decodes to the wrong length', () => {
+      assert.throws(
+        () =>
+          verifyTruepicWebhook({
+            url,
+            secret,
+            header: 't=1698259719,s=Zm9v',
+            body,
+            leewayMinutes,
+          }),
+        new TruepicWebhookVerifierError('Signature is not valid'),
+      )
+    })
+
     it('if the `secret` is not what was used to sign', () => {
       assert.throws(
         () =>
