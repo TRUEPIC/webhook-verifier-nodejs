@@ -11,19 +11,62 @@ describe('verifyTruepicWebhook', () => {
   const header = 't=1698259719,s=S9lwmAyba6aYa/Ts2jlJ6venPhSvlGjd0QdNsvi8iq8='
   const body =
     '{"type":"captures.created","data":{"id":"dd4b8e37-0e2e-47de-91d1-b3eb00aa9d36","type":"PHOTO","status":"WAITING","custom_data":null,"uploaded_by_ip_address":"::1","file_size":2878119,"file_hash":"fVEXbAR0bs0EqIYtJoCRUz067zCJWGp6yW+xwKMHPtw=","created_at":"2023-10-25T18:48:39.479Z","updated_at":"2023-10-25T18:48:39.479Z","processed_at":null,"url":"http://localhost:4566/lens-captures-development/dd4b8e37-0e2e-47de-91d1-b3eb00aa9d36.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=abc%2F20231025%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20231025T184839Z&X-Amz-Expires=36000&X-Amz-Signature=857b33be14592b1618093293d665a41c1043a5cb5c0fef31951a5390bcc8be03&X-Amz-SignedHeaders=host&x-id=GetObject"}}'
+  // The `t` value (in milliseconds) baked into the fixture header above.
+  const sentAtMs = 1698259719 * 1000
+  // For tests that don't care about the timestamp window, opt out of leeway
+  // entirely instead of mocking the clock.
   const leewayMinutes = 999999999
 
-  it('returns `true` if verification is successful', () => {
+  it('returns `true` if verification is successful', (t) => {
+    t.mock.timers.enable({ apis: ['Date'], now: sentAtMs })
+
     assert.strictEqual(
       verifyTruepicWebhook({
         url,
         secret,
         header,
         body,
-        leewayMinutes,
       }),
       true,
     )
+  })
+
+  describe('timestamp leeway window', () => {
+    it('accepts a timestamp exactly at the future leeway window', (t) => {
+      t.mock.timers.enable({
+        apis: ['Date'],
+        now: sentAtMs + 1000 * 60 * 5,
+      })
+
+      assert.strictEqual(
+        verifyTruepicWebhook({
+          url,
+          secret,
+          header,
+          body,
+          leewayMinutes: 5,
+        }),
+        true,
+      )
+    })
+
+    it('accepts a timestamp exactly at the past leeway window', (t) => {
+      t.mock.timers.enable({
+        apis: ['Date'],
+        now: sentAtMs - 1000 * 60 * 5,
+      })
+
+      assert.strictEqual(
+        verifyTruepicWebhook({
+          url,
+          secret,
+          header,
+          body,
+          leewayMinutes: 5,
+        }),
+        true,
+      )
+    })
   })
 
   describe('throws a `TruepicWebhookVerifierError`', () => {
@@ -157,7 +200,33 @@ describe('verifyTruepicWebhook', () => {
       )
     })
 
-    it('if the timestamp is not within allowed window', () => {
+    it('if the timestamp is outside the future leeway window', (t) => {
+      t.mock.timers.enable({
+        apis: ['Date'],
+        now: sentAtMs + 1000 * 60 * 5 + 1,
+      })
+
+      assert.throws(
+        () =>
+          verifyTruepicWebhook({
+            url,
+            secret,
+            header,
+            body,
+            leewayMinutes: 5,
+          }),
+        new TruepicWebhookVerifierError(
+          'Timestamp is not within allowed window',
+        ),
+      )
+    })
+
+    it('if the timestamp is outside the past leeway window', (t) => {
+      t.mock.timers.enable({
+        apis: ['Date'],
+        now: sentAtMs - 1000 * 60 * 5 - 1,
+      })
+
       assert.throws(
         () =>
           verifyTruepicWebhook({
