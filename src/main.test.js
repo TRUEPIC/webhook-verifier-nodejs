@@ -71,6 +71,22 @@ describe('verifyTruepicWebhook', () => {
       )
     })
 
+    it('if the `header` has more than two comma-separated parts', () => {
+      assert.throws(
+        () =>
+          verifyTruepicWebhook({
+            url,
+            secret,
+            header: 't=1698259719,s=abc,extra=stuff',
+            body,
+            leewayMinutes,
+          }),
+        new TruepicWebhookVerifierError(
+          'Header cannot be parsed into timestamp and signature',
+        ),
+      )
+    })
+
     it('if the `header` is missing the timestamp (`t`)', () => {
       assert.throws(
         () =>
