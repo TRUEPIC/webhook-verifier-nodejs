@@ -21,39 +21,46 @@ function parseHeader(header) {
     throw new TruepicWebhookVerifierError('Header is missing or empty')
   }
 
-  // Split the the header value on the comma (`,`). This should leave two parts:
+  // Split the header value on the comma (`,`). This must leave exactly two
+  // non-empty parts:
   //     - t=1634066973
   //     - s=6FBEiVZ8EO79dk5XllfnG18b83ZvLt2kdxcE8FJ/BwU
-  const [timestampParts, signatureParts] = header.split(',')
+  const parts = header.split(',')
 
-  if (!timestampParts?.length || !signatureParts?.length) {
+  if (parts.length !== 2 || !parts[0].length || !parts[1].length) {
     throw new TruepicWebhookVerifierError(
       'Header cannot be parsed into timestamp and signature',
     )
   }
 
-  // Split the timestamp (`t`) on the equals (`=`). This should leave two parts:
-  //    - t
-  //    - 1634066973
-  let [t, timestamp] = timestampParts.split('=')
+  const [timestampPart, signaturePart] = parts
 
-  if (t !== 't' || !timestamp?.length) {
+  // Split the timestamp (`t`) on the first equals (`=`). Splitting on every `=`
+  // would risk dropping characters from the value if it ever contained one
+  // (the timestamp itself never does, but the signature can — see below).
+  const tEq = timestampPart.indexOf('=')
+  const t = tEq === -1 ? timestampPart : timestampPart.slice(0, tEq)
+  const rawTimestamp = tEq === -1 ? '' : timestampPart.slice(tEq + 1)
+
+  if (t !== 't' || !rawTimestamp.length) {
     throw new TruepicWebhookVerifierError('Timestamp is missing or empty')
   }
 
   // Cast and verify that the timestamp value is a number.
-  timestamp = Number(timestamp)
+  const timestamp = Number(rawTimestamp)
 
   if (isNaN(timestamp)) {
     throw new TruepicWebhookVerifierError('Timestamp is not a number')
   }
 
-  // Split the signature (`s`) on the equals (`=`). This should leave two parts:
-  //    - s
-  //    - 6FBEiVZ8EO79dk5XllfnG18b83ZvLt2kdxcE8FJ/BwU
-  const [s, signature] = signatureParts.split('=')
+  // Split the signature (`s`) on the first equals (`=`). The signature value is
+  // base64 and can end in one or two `=` padding characters, which would
+  // otherwise be silently dropped.
+  const sEq = signaturePart.indexOf('=')
+  const s = sEq === -1 ? signaturePart : signaturePart.slice(0, sEq)
+  const signature = sEq === -1 ? '' : signaturePart.slice(sEq + 1)
 
-  if (s !== 's' || !signature?.length) {
+  if (s !== 's' || !signature.length) {
     throw new TruepicWebhookVerifierError('Signature is missing or empty')
   }
 
@@ -101,8 +108,8 @@ function verifyTimestamp({ timestamp, leewayMinutes }) {
  * @returns {true} If verification succeeds.
  */
 function verifySignature({ url, secret, body, timestamp, signature }) {
-  // Rebuild the signature (SHA-256, base64-encoded HMAC digest) with a secret
-  // that only Truepic and the intended receiver are privy to.
+  // Rebuild the signature (SHA-256 HMAC digest) with a secret that only Truepic
+  // and the intended receiver are privy to.
   const comparisonSignature = createHmac('sha256', secret)
 
   // Concatenate the full URL that received the request, timestamp parsed from
@@ -112,11 +119,14 @@ function verifySignature({ url, secret, body, timestamp, signature }) {
   // ways, which can result in a different signature.
   comparisonSignature.update([url, timestamp, body].join(','))
 
-  // Compare with a constant-time algorithm to prevent a timing attack.
-  const isEqual = timingSafeEqual(
-    Buffer.from(comparisonSignature.digest('base64'), 'base64'),
-    Buffer.from(signature, 'base64'),
-  )
+  const comparisonBuffer = comparisonSignature.digest()
+  const signatureBuffer = Buffer.from(signature, 'base64')
+
+  // Compare with a constant-time algorithm to prevent a timing attack. It
+  // requires equal-length buffers, otherwise it throws an error.
+  const isEqual =
+    comparisonBuffer.length === signatureBuffer.length &&
+    timingSafeEqual(comparisonBuffer, signatureBuffer)
 
   if (!isEqual) {
     throw new TruepicWebhookVerifierError('Signature is not valid')
