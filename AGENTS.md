@@ -38,9 +38,9 @@ each throwing `TruepicWebhookVerifierError` on failure:
    by more than `leewayMinutes` (default 5) — replay-attack protection.
    Comparison uses `Math.ceil` of the minute diff.
 3. `verifySignature` recomputes the HMAC-SHA256 of
-   `[url, timestamp, body].join(',')` keyed by the shared `secret`,
-   base64-encodes it, and compares against the header signature using
-   `crypto.timingSafeEqual` (constant-time). The `body` must be the **raw
+   `[url, timestamp, body].join(',')` keyed by the shared `secret`, then
+   compares the raw digest bytes against the base64-decoded header signature
+   using `crypto.timingSafeEqual` (constant-time). The `body` must be the **raw
    request body string** — re-stringified JSON will not match because
    whitespace/key-order differences change the digest. The README's
    Express/Fastify examples exist specifically to show how to preserve the raw
