@@ -16,15 +16,5 @@ module.exports = defineConfig([
   },
   js.configs.recommended,
   node.configs['flat/recommended'],
-  {
-    rules: {
-      'n/no-unsupported-features/node-builtins': [
-        'error',
-        {
-          ignores: ['test.describe'],
-        },
-      ],
-    },
-  },
   prettier,
 ])
