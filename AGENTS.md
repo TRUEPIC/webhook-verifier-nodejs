@@ -18,7 +18,7 @@ code in this repository.
   command does not enforce the branch. After release, merge `development` →
   `main` (which always reflects the latest release).
 
-CommonJS module (`"main": "./src/main.js"`, no build step). Node `>=20` is
+CommonJS module (`"main": "./src/main.js"`, no build step). Node `>=22` is
 required.
 
 ## Architecture
