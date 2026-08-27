@@ -8,6 +8,10 @@ code in this repository.
 - `npm test` — run the test suite (uses Node's built-in `node --test` runner;
   tests live next to source as `*.test.js`).
 - `npm test -- --watch` — re-run tests on file change.
+- `npm run test:coverage` — run the suite with coverage, printing a report and
+  writing `coverage/lcov.info`. CI runs this in a separate job that posts the
+  report to the run summary and uploads it as an artifact. There is no
+  threshold: coverage is reported, not enforced.
 - `node --test src/main.test.js` — run a single test file. Add
   `--test-name-pattern '<regex>'` to filter by test name.
 - `npm run lint` — Prettier format check + ESLint. `npm run lint:format:fix` and
