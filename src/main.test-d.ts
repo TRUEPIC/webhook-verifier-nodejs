@@ -14,11 +14,38 @@ const body = '{"type":"captures.created"}'
 expectType<true>(verifyTruepicWebhook({ url, secret, header, body }))
 
 expectType<true>(
-  verifyTruepicWebhook({ url, secret, header, body, leewayMinutes: 5 }),
+  verifyTruepicWebhook({ url, secret, header, body, leewayMinutes: 10 }),
 )
+
+// Every option but `leewayMinutes` is required. Each omission is tested
+// separately so that any one of them turning optional fails the check.
+
+// @ts-expect-error `url` is required.
+verifyTruepicWebhook({ secret, header, body })
+
+// @ts-expect-error `secret` is required.
+verifyTruepicWebhook({ url, header, body })
+
+// @ts-expect-error `header` is required.
+verifyTruepicWebhook({ url, secret, body })
 
 // @ts-expect-error `body` is required.
 verifyTruepicWebhook({ url, secret, header })
+
+// Every option is narrowly typed. These also catch a widening to `unknown` or
+// `any`, which would otherwise swallow the wrong type silently.
+
+// @ts-expect-error `url` is a string.
+verifyTruepicWebhook({ url: 1, secret, header, body })
+
+// @ts-expect-error `secret` is a string.
+verifyTruepicWebhook({ url, secret: 1, header, body })
+
+// @ts-expect-error `header` is a string.
+verifyTruepicWebhook({ url, secret, header: 1, body })
+
+// @ts-expect-error `body` is a string.
+verifyTruepicWebhook({ url, secret, header, body: 1 })
 
 // @ts-expect-error `leewayMinutes` is a number.
 verifyTruepicWebhook({ url, secret, header, body, leewayMinutes: '5' })
