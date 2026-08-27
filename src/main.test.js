@@ -32,7 +32,7 @@ describe('verifyTruepicWebhook', () => {
   })
 
   describe('timestamp leeway window', () => {
-    it('accepts a timestamp exactly at the future leeway window', (t) => {
+    it('accepts a webhook that arrives exactly 5 minutes late', (t) => {
       t.mock.timers.enable({
         apis: ['Date'],
         now: sentAtMs + 1000 * 60 * 5,
@@ -50,7 +50,7 @@ describe('verifyTruepicWebhook', () => {
       )
     })
 
-    it('accepts a timestamp exactly at the past leeway window', (t) => {
+    it('accepts a webhook whose sender clock is exactly 5 minutes ahead', (t) => {
       t.mock.timers.enable({
         apis: ['Date'],
         now: sentAtMs - 1000 * 60 * 5,
@@ -200,7 +200,7 @@ describe('verifyTruepicWebhook', () => {
       )
     })
 
-    it('if the timestamp is outside the future leeway window', (t) => {
+    it('if the webhook arrives more than 5 minutes late', (t) => {
       t.mock.timers.enable({
         apis: ['Date'],
         now: sentAtMs + 1000 * 60 * 5 + 1,
@@ -221,7 +221,7 @@ describe('verifyTruepicWebhook', () => {
       )
     })
 
-    it('if the timestamp is outside the past leeway window', (t) => {
+    it('if the sender clock is more than 5 minutes ahead', (t) => {
       t.mock.timers.enable({
         apis: ['Date'],
         now: sentAtMs - 1000 * 60 * 5 - 1,
