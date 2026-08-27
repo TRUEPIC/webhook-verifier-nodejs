@@ -67,9 +67,60 @@ describe('verifyTruepicWebhook', () => {
         true,
       )
     })
+
+    it('defaults to a 5 minute leeway if none is given', (t) => {
+      t.mock.timers.enable({
+        apis: ['Date'],
+        now: sentAtMs + 1000 * 60 * 5,
+      })
+
+      assert.strictEqual(
+        verifyTruepicWebhook({
+          url,
+          secret,
+          header,
+          body,
+        }),
+        true,
+      )
+    })
+
+    it('accepts a webhook that arrives instantly with no leeway', (t) => {
+      t.mock.timers.enable({ apis: ['Date'], now: sentAtMs })
+
+      assert.strictEqual(
+        verifyTruepicWebhook({
+          url,
+          secret,
+          header,
+          body,
+          leewayMinutes: 0,
+        }),
+        true,
+      )
+    })
   })
 
   describe('throws a `TruepicWebhookVerifierError`', () => {
+    it('that is an instance of the exported error class', () => {
+      assert.throws(
+        () =>
+          verifyTruepicWebhook({
+            url,
+            secret,
+            header: '',
+            body,
+            leewayMinutes,
+          }),
+        (error) => {
+          assert.ok(error instanceof TruepicWebhookVerifierError)
+          assert.ok(error instanceof Error)
+
+          return true
+        },
+      )
+    })
+
     it('if the `header` is missing', () => {
       assert.throws(
         () =>
@@ -91,6 +142,20 @@ describe('verifyTruepicWebhook', () => {
             url,
             secret,
             header: '',
+            body,
+            leewayMinutes,
+          }),
+        new TruepicWebhookVerifierError('Header is missing or empty'),
+      )
+    })
+
+    it('if the `header` is not a string', () => {
+      assert.throws(
+        () =>
+          verifyTruepicWebhook({
+            url,
+            secret,
+            header: ['t=1698259719,s=abc'],
             body,
             leewayMinutes,
           }),
@@ -130,6 +195,38 @@ describe('verifyTruepicWebhook', () => {
       )
     })
 
+    it('if the `header` is missing the timestamp part entirely', () => {
+      assert.throws(
+        () =>
+          verifyTruepicWebhook({
+            url,
+            secret,
+            header: ',s=test',
+            body,
+            leewayMinutes,
+          }),
+        new TruepicWebhookVerifierError(
+          'Header cannot be parsed into timestamp and signature',
+        ),
+      )
+    })
+
+    it('if the `header` is missing the signature part entirely', () => {
+      assert.throws(
+        () =>
+          verifyTruepicWebhook({
+            url,
+            secret,
+            header: 't=1698259719,',
+            body,
+            leewayMinutes,
+          }),
+        new TruepicWebhookVerifierError(
+          'Header cannot be parsed into timestamp and signature',
+        ),
+      )
+    })
+
     it('if the `header` is missing the timestamp (`t`)', () => {
       assert.throws(
         () =>
@@ -151,6 +248,20 @@ describe('verifyTruepicWebhook', () => {
             url,
             secret,
             header: 't=,s=test',
+            body,
+            leewayMinutes,
+          }),
+        new TruepicWebhookVerifierError('Timestamp is missing or empty'),
+      )
+    })
+
+    it('if the `header` timestamp part has no `=`', () => {
+      assert.throws(
+        () =>
+          verifyTruepicWebhook({
+            url,
+            secret,
+            header: 't,s=test',
             body,
             leewayMinutes,
           }),
@@ -200,6 +311,20 @@ describe('verifyTruepicWebhook', () => {
       )
     })
 
+    it('if the `header` signature part has no `=`', () => {
+      assert.throws(
+        () =>
+          verifyTruepicWebhook({
+            url,
+            secret,
+            header: 't=1698259719,s',
+            body,
+            leewayMinutes,
+          }),
+        new TruepicWebhookVerifierError('Signature is missing or empty'),
+      )
+    })
+
     it('if the webhook arrives more than 5 minutes late', (t) => {
       t.mock.timers.enable({
         apis: ['Date'],
@@ -235,6 +360,44 @@ describe('verifyTruepicWebhook', () => {
             header,
             body,
             leewayMinutes: 5,
+          }),
+        new TruepicWebhookVerifierError(
+          'Timestamp is not within allowed window',
+        ),
+      )
+    })
+
+    it('if the webhook arrives more than 5 minutes late and no leeway is given', (t) => {
+      t.mock.timers.enable({
+        apis: ['Date'],
+        now: sentAtMs + 1000 * 60 * 5 + 1,
+      })
+
+      assert.throws(
+        () =>
+          verifyTruepicWebhook({
+            url,
+            secret,
+            header,
+            body,
+          }),
+        new TruepicWebhookVerifierError(
+          'Timestamp is not within allowed window',
+        ),
+      )
+    })
+
+    it('if the webhook is late at all and no leeway is allowed', (t) => {
+      t.mock.timers.enable({ apis: ['Date'], now: sentAtMs + 1 })
+
+      assert.throws(
+        () =>
+          verifyTruepicWebhook({
+            url,
+            secret,
+            header,
+            body,
+            leewayMinutes: 0,
           }),
         new TruepicWebhookVerifierError(
           'Timestamp is not within allowed window',
@@ -295,6 +458,48 @@ describe('verifyTruepicWebhook', () => {
             leewayMinutes,
           }),
         new TruepicWebhookVerifierError('Signature is not valid'),
+      )
+    })
+
+    it('if the `secret` is missing', () => {
+      assert.throws(
+        () =>
+          verifyTruepicWebhook({
+            url,
+            secret: undefined,
+            header,
+            body,
+            leewayMinutes,
+          }),
+        new TruepicWebhookVerifierError('Secret is missing or empty'),
+      )
+    })
+
+    it('if the `secret` is empty', () => {
+      assert.throws(
+        () =>
+          verifyTruepicWebhook({
+            url,
+            secret: '',
+            header,
+            body,
+            leewayMinutes,
+          }),
+        new TruepicWebhookVerifierError('Secret is missing or empty'),
+      )
+    })
+
+    it('if the `secret` is not a string', () => {
+      assert.throws(
+        () =>
+          verifyTruepicWebhook({
+            url,
+            secret: 1698259719,
+            header,
+            body,
+            leewayMinutes,
+          }),
+        new TruepicWebhookVerifierError('Secret is missing or empty'),
       )
     })
 
