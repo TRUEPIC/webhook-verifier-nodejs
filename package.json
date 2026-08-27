@@ -13,7 +13,8 @@
   },
   "files": [
     "src",
-    "!src/**/*.test.js"
+    "!src/**/*.test.js",
+    "!src/**/*.test-d.ts"
   ],
   "scripts": {
     "docs": "jsdoc src --recurse --destination docs",
@@ -23,7 +24,8 @@
     "lint:quality": "eslint .",
     "lint:quality:fix": "eslint --fix .",
     "release": "release-it --only-version",
-    "test": "node --test"
+    "test": "node --test",
+    "typecheck": "tsc"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -33,7 +35,8 @@
     "globals": "^17.11.0",
     "jsdoc": "^4.0.5",
     "prettier": "3.9.6",
-    "release-it": "^21.0.2"
+    "release-it": "^21.0.2",
+    "typescript": "^7.0.2"
   },
   "engines": {
     "node": ">=22"
