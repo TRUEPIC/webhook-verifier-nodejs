@@ -43,15 +43,27 @@ jobs:
           cache: 'npm'
       - name: Install npm dependencies
         run: npm install
-      - name: Report coverage
+      - name: Run tests
         run: |
           set -o pipefail
-          npm run test:coverage | tee "$RUNNER_TEMP/coverage.txt"
+          npm run test:coverage | tee "$RUNNER_TEMP/tests.txt"
+      # Reported in its own step so the summary is still written when the suite
+      # fails, which is when the test results are most worth reading. Node
+      # prints both its summary and the coverage report even on failure.
+      - name: Report test results & coverage
+        if: ${{ !cancelled() }}
+        run: |
           {
+            echo '## Tests'
+            echo
+            echo '```'
+            grep -E '^ℹ (tests|suites|pass|fail|cancelled|skipped|todo|duration_ms) ' "$RUNNER_TEMP/tests.txt" | sed 's/^ℹ //'
+            echo '```'
+            echo
             echo '## Test coverage'
             echo
             echo '```'
-            awk '/start of coverage report/{f=1;next} /end of coverage report/{f=0} f' "$RUNNER_TEMP/coverage.txt" | sed 's/^ℹ //'
+            awk '/start of coverage report/{f=1;next} /end of coverage report/{f=0} f' "$RUNNER_TEMP/tests.txt" | sed 's/^ℹ //'
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload coverage report
