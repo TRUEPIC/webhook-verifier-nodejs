@@ -3,3 +3,6 @@
 
 # JSDoc
 /docs
+
+# Test coverage
+/coverage

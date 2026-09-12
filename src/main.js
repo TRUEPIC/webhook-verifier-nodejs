@@ -17,7 +17,7 @@ const TruepicWebhookVerifierError = require('./error')
  * @returns {Object} The parsed `timestamp` and `signature` values.
  */
 function parseHeader(header) {
-  if (!header?.length) {
+  if (typeof header !== 'string' || !header.length) {
     throw new TruepicWebhookVerifierError('Header is missing or empty')
   }
 
@@ -108,6 +108,13 @@ function verifyTimestamp({ timestamp, leewayMinutes }) {
  * @returns {true} If verification succeeds.
  */
 function verifySignature({ url, secret, body, timestamp, signature }) {
+  // Guard the secret before handing it to `createHmac`, which would otherwise
+  // throw a raw `TypeError` and break the documented contract that every
+  // failure is a `TruepicWebhookVerifierError`.
+  if (typeof secret !== 'string' || !secret.length) {
+    throw new TruepicWebhookVerifierError('Secret is missing or empty')
+  }
+
   // Rebuild the signature (SHA-256 HMAC digest) with a secret that only Truepic
   // and the intended receiver are privy to.
   const comparisonSignature = createHmac('sha256', secret)
