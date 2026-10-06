@@ -25,6 +25,15 @@ code in this repository.
 CommonJS module (`"main": "./src/main.js"`, no build step). Node `>=22` is
 required.
 
+`.npmrc` sets `strict-allow-scripts`, so an install fails on any dependency with
+an install script that hasn't been reviewed. None has one today, so
+`package.json` has no `allowScripts` field yet. If a new dependency needs one,
+read what the script does, then add it with `npm approve-scripts <pkg>` (pinned
+to the reviewed version), or `npm deny-scripts <pkg>` when it isn't needed —
+never `npm approve-scripts --all` or `--dangerously-allow-all-scripts`. It's
+enforced by npm 11.19+ (Node 24 and later); Node 22's npm 10 ignores it with an
+"Unknown project config" warning.
+
 ## Architecture
 
 This is a small published library (`@truepic/webhook-verifier`) that verifies
