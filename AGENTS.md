@@ -9,9 +9,10 @@ code in this repository.
   tests live next to source as `*.test.js`).
 - `npm test -- --watch` — re-run tests on file change.
 - `npm run test:coverage` — run the suite with coverage, printing a report and
-  writing `coverage/lcov.info`. CI runs this in a separate job that posts the
-  test results and coverage report to the run summary and uploads the report as
-  an artifact. There is no threshold: coverage is reported, not enforced.
+  writing `coverage/lcov.info`. CI collects coverage during the Node 26 matrix
+  run, posts the test results and coverage report to the run summary, and
+  uploads the report as an artifact. There is no threshold: coverage is
+  reported, not enforced.
 - `node --test src/main.test.js` — run a single test file. Add
   `--test-name-pattern '<regex>'` to filter by test name.
 - `npm run lint` — Prettier format check + ESLint. `npm run lint:format:fix` and
@@ -24,6 +25,15 @@ code in this repository.
 
 CommonJS module (`"main": "./src/main.js"`, no build step). Node `>=22` is
 required.
+
+`.npmrc` sets `strict-allow-scripts`, so an install fails on any dependency with
+an install script that hasn't been reviewed. None has one today, so
+`package.json` has no `allowScripts` field yet. If a new dependency needs one,
+read what the script does, then add it with `npm approve-scripts <pkg>` (pinned
+to the reviewed version), or `npm deny-scripts <pkg>` when it isn't needed —
+never `npm approve-scripts --all` or `--dangerously-allow-all-scripts`. It's
+enforced by npm 11.19+ (Node 24 and later); Node 22's npm 10 ignores it with an
+"Unknown project config" warning.
 
 ## Architecture
 
