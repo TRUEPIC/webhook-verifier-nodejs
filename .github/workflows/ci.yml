@@ -15,6 +15,7 @@ concurrency:
 
 defaults:
   run:
+    # Explicit bash enables pipefail so tee cannot hide test failures.
     shell: bash
 
 jobs:
@@ -25,7 +26,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: ['22.x', '24.x', '26.x']
+        node-version: ['22.x', '24.x']
+        include:
+          - node-version: '26.x'
+            is-primary: true
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -37,23 +41,23 @@ jobs:
       - name: Install npm dependencies
         run: npm ci
       - name: Run lint
-        if: matrix.node-version == '26.x'
+        if: matrix.is-primary
         run: npm run lint
       - name: Run typecheck
-        if: matrix.node-version == '26.x'
+        if: matrix.is-primary
         run: npm run typecheck
       - name: Run tests
-        if: matrix.node-version != '26.x'
+        if: ${{ !matrix.is-primary }}
         run: npm test
       - name: Run tests with coverage
-        if: matrix.node-version == '26.x'
+        if: matrix.is-primary
         run: npm run test:coverage | tee "$RUNNER_TEMP/tests.txt"
       # Reported in its own step so the summary is still written when the suite
       # fails, which is when the test results are most worth reading. Node
       # prints both its summary and the coverage report even on failure.
       - name: Report test results & coverage
         if:
-          ${{ !cancelled() && matrix.node-version == '26.x' &&
+          ${{ !cancelled() && matrix.is-primary &&
           hashFiles('coverage/lcov.info') != '' }}
         run: |
           {
@@ -71,9 +75,9 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload coverage report
         if:
-          ${{ !cancelled() && matrix.node-version == '26.x' &&
+          ${{ !cancelled() && matrix.is-primary &&
           hashFiles('coverage/lcov.info') != '' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: coverage-${{ github.run_attempt }}
           path: coverage/
