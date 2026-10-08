@@ -20,7 +20,7 @@ defaults:
 
 jobs:
   lint-test:
-    name: Lint & test
+    name: Lint & test (${{ matrix.node-version }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
