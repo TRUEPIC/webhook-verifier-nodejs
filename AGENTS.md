@@ -9,9 +9,10 @@ code in this repository.
   tests live next to source as `*.test.js`).
 - `npm test -- --watch` — re-run tests on file change.
 - `npm run test:coverage` — run the suite with coverage, printing a report and
-  writing `coverage/lcov.info`. CI runs this in a separate job that posts the
-  test results and coverage report to the run summary and uploads the report as
-  an artifact. There is no threshold: coverage is reported, not enforced.
+  writing `coverage/lcov.info`. CI collects coverage during the Node 26 matrix
+  run, posts the test results and coverage report to the run summary, and
+  uploads the report as an artifact. There is no threshold: coverage is
+  reported, not enforced.
 - `node --test src/main.test.js` — run a single test file. Add
   `--test-name-pattern '<regex>'` to filter by test name.
 - `npm run lint` — Prettier format check + ESLint. `npm run lint:format:fix` and
