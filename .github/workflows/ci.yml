@@ -6,52 +6,55 @@ on:
       - '**'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   lint-test:
     name: Lint & test
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
+      fail-fast: false
       matrix:
         node-version: ['22.x', '24.x', '26.x']
     steps:
       - name: Check out repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Set up Node.js v${{ matrix.node-version }}
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
       - name: Install npm dependencies
-        run: npm install
+        run: npm ci
       - name: Run lint
+        if: matrix.node-version == '26.x'
         run: npm run lint
       - name: Run typecheck
+        if: matrix.node-version == '26.x'
         run: npm run typecheck
       - name: Run tests
+        if: matrix.node-version != '26.x'
         run: npm test
-
-  test-coverage:
-    name: Test coverage
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-      - name: Set up Node.js
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
-        with:
-          node-version: '26.x'
-          cache: 'npm'
-      - name: Install npm dependencies
-        run: npm install
-      - name: Run tests
-        run: |
-          set -o pipefail
-          npm run test:coverage | tee "$RUNNER_TEMP/tests.txt"
+      - name: Run tests with coverage
+        if: matrix.node-version == '26.x'
+        run: npm run test:coverage | tee "$RUNNER_TEMP/tests.txt"
       # Reported in its own step so the summary is still written when the suite
       # fails, which is when the test results are most worth reading. Node
       # prints both its summary and the coverage report even on failure.
       - name: Report test results & coverage
-        if: ${{ !cancelled() }}
+        if:
+          ${{ !cancelled() && matrix.node-version == '26.x' &&
+          hashFiles('coverage/lcov.info') != '' }}
         run: |
           {
             echo '## Tests'
@@ -67,8 +70,11 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload coverage report
-        if: ${{ !cancelled() }}
+        if:
+          ${{ !cancelled() && matrix.node-version == '26.x' &&
+          hashFiles('coverage/lcov.info') != '' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: coverage
+          name: coverage-${{ github.run_attempt }}
           path: coverage/
+          retention-days: 14
