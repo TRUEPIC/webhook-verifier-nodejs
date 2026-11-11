@@ -60,8 +60,8 @@ Contract details that any change must preserve:
    changes whitespace/key order and breaks the digest (see `WV-I.1a`).
 3. **`timestamp`** is Unix **seconds** in the header (`t=`); `verifyTimestamp`
    multiplies by 1000 to compare against `Date.now()` milliseconds.
-4. **Encoding:** signature is base64 (`s=`), and may carry one or two `=`
-   padding chars — hence the first-`=`-only split in `parseHeader` (`WV-H.1b`).
+4. **Encoding:** signature is base64 (`s=`), and always carries exactly one `=`
+   padding char — hence the first-`=`-only split in `parseHeader` (`WV-H.1b`).
 5. **Algorithm:** HMAC-SHA256. Changing the algorithm, delimiter, field order,
    or encoding on either side silently breaks verification for every customer.
 
